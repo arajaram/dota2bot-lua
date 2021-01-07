@@ -8,12 +8,16 @@ local version = require(GetScriptDirectory() .. "/protocol/version")
 local gameinfo = require(GetScriptDirectory() .. "/protocol/gameinfo")
 local observation = require(GetScriptDirectory() .. "/protocol/observation")
 local action = require(GetScriptDirectory() .. "/protocol/action")
+local MessagePack = require('MessagePack')
 
 -- non-shared variables (1 local var for each bot)
 local observationInProgress = false
 local pendingUnitHandles = nil
 local pendingDroppedItemsHandles = nil
 local pendingActions = nil
+
+local observationFrequency = 0.25
+local lastObservationTimestamp = -1000.0;
 
 function Think()
   local team = GetTeam()
@@ -36,9 +40,11 @@ function Think()
     httpRequest:SetHTTPRequestRawPostBody("d2ai", message)
     httpRequest:Send(function(res) end)
 
-  elseif not observationInProgress then
+  elseif not observationInProgress and GameTime() > lastObservationTimestamp then
 
     observationInProgress = true
+    lastObservationTimestamp = GameTime() + observationFrequency
+
     -- perform pending actions
     action.perform(GetBot(), pendingActions, pendingUnitHandles, pendingDroppedItemsHandles)
     -- send OBSERVATION message
