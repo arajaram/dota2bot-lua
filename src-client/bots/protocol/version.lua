@@ -1,7 +1,7 @@
 --
 -- version message
 --
-local Pack = require(GetScriptDirectory() .. "/utils/pack")
+local pack = require(GetScriptDirectory() .. "/utils/pack")
 
 -- returned module
 local version = {}
@@ -16,7 +16,7 @@ function version.get()
   local ver = {}
   ver["protocol"] = PROTOCOL_VERSION
   -- return version
-  return Pack(ver, "version");
+  return pack.pack(ver, "version");
 end
 
 return version

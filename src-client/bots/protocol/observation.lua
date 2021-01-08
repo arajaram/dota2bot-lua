@@ -1,7 +1,9 @@
 --
 -- observation message
 --
-local Pack = require(GetScriptDirectory() .. "/utils/pack")
+local pack = require(GetScriptDirectory() .. "/utils/pack")
+local ParseLocation = require(GetScriptDirectory() .. "/utils/location")
+local uuidv4 = require(GetScriptDirectory() .. "/utils/uuidv4")
 
 -- returned module
 local observation = {}
@@ -15,8 +17,7 @@ end
 local function getAbility(a, slot)
   local ability = {}
   ability["name"] = a:GetName()
-  table.insert(ability, slot)
-  table.insert(ability, )
+  ability["slot"] = slot
   ability["canAbilityBeUpgraded"] = a:CanAbilityBeUpgraded()
   ability["getAutoCastState"] = a:GetAutoCastState() -- isAutoCast()
   ability["getToggleState"] = a:GetToggleState() -- isToggled()
@@ -34,15 +35,7 @@ local function getAbility(a, slot)
   ability["isTrained"] = a:IsTrained()
   ability["procsMagicStick"] = a:ProcsMagicStick()
   -- Behavior
-  local behavior = {}
-  behavior["ABILITY_BEHAVIOR_PASSIVE"] = flagIsSet(a:GetBehavior(), ABILITY_BEHAVIOR_PASSIVE)
-  behavior["ABILITY_BEHAVIOR_NO_TARGET"] = flagIsSet(a:GetBehavior(), ABILITY_BEHAVIOR_NO_TARGET)
-  behavior["ABILITY_BEHAVIOR_UNIT_TARGET"] = flagIsSet(a:GetBehavior(), ABILITY_BEHAVIOR_UNIT_TARGET)
-  behavior["ABILITY_BEHAVIOR_POINT"] = flagIsSet(a:GetBehavior(), ABILITY_BEHAVIOR_POINT)
-  behavior["ABILITY_BEHAVIOR_AOE"] = flagIsSet(a:GetBehavior(), ABILITY_BEHAVIOR_AOE)
-  behavior["ABILITY_BEHAVIOR_NOT_LEARNABLE"] = flagIsSet(a:GetBehavior(), ABILITY_BEHAVIOR_NOT_LEARNABLE)
-  behavior["ABILITY_BEHAVIOR_CHANNELLED"] = flagIsSet(a:GetBehavior(), ABILITY_BEHAVIOR_CHANNELLED)
-  ability["behavior"] = behavior
+  ability["behavior"] = a:GetBehavior()
 
   ability["getCastPoint"] = a:GetCastPoint()
   ability["getCastRange"] = a:GetCastRange()
@@ -58,7 +51,7 @@ local function getAbility(a, slot)
   ability["getLevel"] = a:GetLevel()
   ability["getManaCost"] = a:GetManaCost()
   ability["getMaxLevel"] = a:GetMaxLevel()
-  ability["geTSecondaryCharges"] = a:GetSecondaryCharges()
+  ability["getSecondaryCharges"] = a:GetSecondaryCharges()
   ability["getTargetTeam"] = a:GetTargetTeam()
   ability["getTargetType"] = a:GetTargetType()
   ability["isItem"] = a:IsItem()
@@ -67,101 +60,108 @@ local function getAbility(a, slot)
   return ability
 end
 
--- public
-function observation.get()
-  local obs = {}
-  -- [1] GAME TIME
-  obs["gameTime"] = GameTime()
-  -- [2] DOTA TIME
-  obs["dotaTime"] = DotaTime()
-  -- [3] PLAYER ID
-  obs["playerID"] = GetBot():GetPlayerID()
-  -- [4] PLAYER CURRENT ACTION TYPE
-  obs["currentActionType"] = GetBot():GetCurrentActionType()
-  -- [5] TIME OF DAY
-  obs["timeOfDay"] = GetTimeOfDay()
-  -- [6] GLYPH COOLDOWN
-  obs["glyphCooldown"] = GetGlyphCooldown()
-  -- [7] ROSHAN KILL TIME
-  obs["roshanKillTime"] = GetRoshanKillTime()
-  -- [8] IS COURIER AVAILABLE
-  obs["isCourierAvailable"] = IsCourierAvailable()
-  -- [9] UNITS
-  local unitList = GetUnitList(UNIT_LIST_ALL)
-  local unitHandles = {}
-  local units = {}
-  local hu = 0
+function observation.getUnits(type)
+  type = type or UNIT_LIST_ALL
+  local unitList = GetUnitList(type)
+  local handleToUUID = {}
+  setmetatable(handleToUUID, { __mode = "k" })
   for k,u in pairs(unitList) do
-    hu = hu + 1
-    unitHandles[hu] = u
+    local uuid = uuidv4.getUUID()
+    handleToUUID[u] = uuid
+  end
+  local units = {}
+  for k,u in pairs(unitList) do
     local unit = {}
-    unit["handleID"] = hu -- handle ID
+    unit["uuid"] = handleToUUID[u] -- handle ID
+    unit["isBot"] = u:IsBot()
+    unit["difficulty"] = u:GetDifficulty()
+    unit["name"] = u:GetUnitName()
     unit["playerID"] = u:GetPlayerID()
     unit["team"] = u:GetTeam()
-    unit["name"] = u:GetUnitName()
-    unit["currentActionType"] = u:GetCurrentActionType()
-    unit["isControlled"] = u == GetBot()
     unit["isHero"] = u:IsHero()
+    unit["isIllusion"] = u:IsIllusion()
     unit["isCreep"] = u:IsCreep()
     unit["isAncientCreep"] = u:IsAncientCreep()
     unit["isBuilding"] = u:IsBuilding()
     unit["isTower"] = u:IsTower()
     unit["isFort"] = u:IsFort()
-    unit["courierState"] = GetCourierState(u)
-    unit["courierValue"] = u:GetCourierValue()
-    unit["isFlyingCourier"] = IsFlyingCourier(u)
-    unit["isIllusion"] = u:IsIllusion()
+
     unit["canBeSeen"] = u:CanBeSeen()
-    unit["location"] = u:GetLocation()
-    unit["facing"] = u:GetFacing()
-    unit["velocity"] = u:GetVelocity()
+
     unit["health"] = u:GetHealth()
     unit["maxHealth"] = u:GetMaxHealth()
     unit["healthRegen"] = u:GetHealthRegen()
     unit["mana"] = u:GetMana()
     unit["maxMana"] = u:GetMaxMana()
     unit["manaRegen"] = u:GetManaRegen()
+
     unit["baseMovementSpeed"] = u:GetBaseMovementSpeed()
     unit["currentMovementSpeed"] = u:GetCurrentMovementSpeed()
+
     unit["isAlive"] = u:IsAlive()
     unit["respawnTime"] = u:GetRespawnTime()
     unit["hasBuyback"] = u:HasBuyback()
     unit["buybackCost"] = u:GetBuybackCost()
     unit["buybackCooldown"] = u:GetBuybackCooldown()
     unit["remainingLifespan"] = u:GetRemainingLifespan()
+  
     unit["baseDamage"] = u:GetBaseDamage()
     unit["baseDamageVariance"] = u:GetBaseDamageVariance()
     unit["attackDamage"] = u:GetAttackDamage()
     unit["attackRange"] = u:GetAttackRange()
     unit["attackSpeed"] = u:GetAttackSpeed()
     unit["secondsPerAttack"] = u:GetSecondsPerAttack()
+    unit["attackPoint"] = u:GetAttackPoint()
     unit["lastAttackTime"] = u:GetLastAttackTime()
+    local attackTarget = u:GetAttackTarget()
+    unit["attackTarget"] = attackTarget == nil and nil or handleToUUID[attackTarget]
     unit["acquisitionRange"] = u:GetAcquisitionRange()
     unit["attackProjectileSpeed"] = u:GetAttackProjectileSpeed()
+
     unit["spellAmp"] = u:GetSpellAmp()
     unit["armor"] = u:GetArmor()
     unit["magicResist"] = u:GetMagicResist()
     unit["evasion"] = u:GetEvasion()
+
+    unit["primaryAttribute"] = u:GetPrimaryAttribute()
+    
+    -- TODO: All attributes
+
     unit["bountyXP"] = u:GetBountyXP()
     unit["bountyGoldMin"] = u:GetBountyGoldMin()
     unit["bountyGoldMax"] = u:GetBountyGoldMax()
+
     unit["XPNeededToLevel"] = u:GetXPNeededToLevel()
     unit["abilityPoints"] = u:GetAbilityPoints()
     unit["level"] = u:GetLevel()
+
     unit["gold"] = u:GetGold()
     unit["netWorth"] = u:GetNetWorth()
     unit["stashValue"] = u:GetStashValue()
+    unit["courierValue"] = u:GetCourierValue()
+
     unit["lastHits"] = u:GetLastHits()
     unit["denies"] = u:GetDenies()
+
     unit["boundingRadius"] = u:GetBoundingRadius()
+    unit["location"] = ParseLocation(u:GetLocation())
+    unit["facing"] = u:GetFacing()
+    unit["velocity"] = ParseLocation(u:GetVelocity())
+    
     unit["dayTimeVisionRange"] = u:GetDayTimeVisionRange()
     unit["nightTimeVisionRange"] = u:GetNightTimeVisionRange()
     unit["currentVisionRange"] = u:GetCurrentVisionRange()
+
     unit["healthRegenPerStr"] = u:GetHealthRegenPerStr()
     unit["manaRegenPerInt"] = u:GetManaRegenPerInt()
+
+    -- unit["animationActivity"] = u:GetAnimationActivity()
+    -- unit["animCycle"] = u:GetAnimCycle()
+
     unit["isChanneling"] = u:IsChanneling()
     unit["isUsingAbility"] = u:IsUsingAbility()
     unit["isCastingAbility"] = u:IsCastingAbility()
+
     unit["isAttackImmune"] = u:IsAttackImmune()
     unit["isBlind"] = u:IsBlind()
     unit["isBlockDisabled"] = u:IsBlockDisabled()
@@ -180,9 +180,14 @@ function observation.get()
     unit["isStunned"] = u:IsStunned()
     unit["isUnableToMiss"] = u:IsUnableToMiss()
     unit["hasScepter"] = u:HasScepter()
+
     unit["timeSinceDamagedByAnyHero"] = u:TimeSinceDamagedByAnyHero()
     unit["timeSinceDamagedByCreep"] = u:TimeSinceDamagedByCreep()
     unit["timeSinceDamagedByTower"] = u:TimeSinceDamagedByTower()
+
+    unit["currentActionType"] = u:GetCurrentActionType()
+    unit["courierState"] = GetCourierState(u)
+    unit["isFlyingCourier"] = IsFlyingCourier(u)
     --  abilities
     local abilities = {}
     for slot = 0, 15 do
@@ -208,15 +213,20 @@ function observation.get()
     local trees = u:GetNearbyTrees(1500)
     if trees ~= nil then
       for k,tid in pairs(trees) do
-        table.insert(nearbyTrees, tid)
+        local tree = {}
+        tree["handleID"] = tid
+        tree["location"] = ParseLocation(GetTreeLocation(tid))
+        table.insert(nearbyTrees, tree)
       end
     end
     unit["nearbyTrees"] = nearbyTrees
     --
     table.insert(units, unit)
   end
-  obs["units"] = units
-  -- [10] DROPPED ITEMS
+  return units, handleToUUID, unitList
+end
+
+function observation.getDroppedItems()
   local droppedItemsHandles = {}
   local droppedItems = {}
   local hdi = 0
@@ -228,12 +238,14 @@ function observation.get()
       local droppedItem = {}
       droppedItem["handleID"] = hdi -- handle ID
       droppedItem["name"] = tbl.item:GetName()
-      droppedItem["location"] = tbl.location
+      droppedItem["location"] = ParseLocation(tbl.location)
       table.insert(droppedItems, droppedItem)
     end
   end
-  obs["droppedItems"] = droppedItems
-  -- [11] RUNES
+  return droppedItems, droppedItemsHandles
+end
+
+function observation.getRunes()
   local runes = {}
   local runeSpawnList = {RUNE_POWERUP_1, RUNE_POWERUP_2,
     RUNE_BOUNTY_1, RUNE_BOUNTY_2, RUNE_BOUNTY_3, RUNE_BOUNTY_4}
@@ -245,19 +257,71 @@ function observation.get()
     rune["timeSinceSeen"] = GetRuneTimeSinceSeen(rs)
     table.insert(runes, rune)
   end
-  obs["runes"] = runes
-  -- [12] LANE FRONTS
+  return runes, runeSpawnList
+end
+
+function observation.getLaneFronts()
   local laneFronts = {}
   local lanes = {LANE_TOP, LANE_MID, LANE_BOT}
   for k,l in pairs(lanes) do
     local lf = {}
     lf["lane"] = l
-    lf["front"] = GetLaneFrontLocation(GetBot():GetTeam(), l, -300) -- slight delta
-    laneFronts["lane"] = lf
+    local lfLoc = GetLaneFrontLocation(GetBot():GetTeam(), l, -300) -- slight delta
+    lf["front"] = ParseLocation(lfLoc)
+    table.insert(laneFronts, lf)
   end
-  obs["laneFronts"] = laneFronts
-  -- return observation
-  return Pack(obs, "observation"), unitHandles, droppedItemsHandles
+  return laneFronts
 end
 
+-- public
+function observation.get()
+  local obs = {}
+  -- [3] PLAYER ID
+  obs["playerID"] = GetBot():GetPlayerID()
+  -- [4] PLAYER CURRENT ACTION TYPE
+  obs["currentActionType"] = GetBot():GetCurrentActionType()
+  -- [5] TIME OF DAY
+  obs["timeOfDay"] = GetTimeOfDay()
+  -- [6] GLYPH COOLDOWN
+  obs["glyphCooldown"] = GetGlyphCooldown()
+  -- [7] ROSHAN KILL TIME
+  obs["roshanKillTime"] = GetRoshanKillTime()
+  -- [8] IS COURIER AVAILABLE
+  obs["isCourierAvailable"] = IsCourierAvailable()
+
+  -- [9] UNITS
+  -- Handled by world observation
+  
+
+  -- [10] DROPPED ITEMS
+  -- Handled by world observation
+
+  -- [11] RUNES
+  -- We skip runes
+
+  -- [12] LANE FRONTS
+  -- We skip lane f ronts
+  -- return observation
+  return pack.pack(obs, "observation"), unitHandles, droppedItemsHandles
+end
+
+function observation.getWorldInfo()
+  local info = {}
+  -- [1] GAME TIME
+  info["gameTime"] = GameTime()
+  -- [2] DOTA TIME
+  info["dotaTime"] = DotaTime()
+
+  local units, unitHandles, unitList = observation.getUnits()
+  info["units"] = units
+
+  local runes = observation.getRunes()
+  info["runes"] = runes
+
+  local droppedItems, droppedItemsHandles = observation.getDroppedItems()
+  info["droppedItems"] = droppedItems
+
+  info["laneFronts"] = observation.getLaneFronts()
+  return info, unitHandles, droppedItemsHandles
+end
 return observation

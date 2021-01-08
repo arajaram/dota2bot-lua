@@ -1,7 +1,8 @@
 --
 -- game info message
 --
-local Pack = require(GetScriptDirectory() .. "/utils/pack")
+local pack = require(GetScriptDirectory() .. "/utils/pack")
+local ParseLocation = require(GetScriptDirectory() .. "/utils/location")
 local items = require(GetScriptDirectory() .. "/protocol/items")
 
 -- returned module
@@ -25,12 +26,12 @@ function gameinfo.get()
   damageTypes["DAMAGE_TYPE_ALL"] = DAMAGE_TYPE_ALL
   info["damageTypes"] = damageTypes
   -- [4] TEAM ENUM
-  local teams = {}
-  teams["TEAM_RADIANT"] = TEAM_RADIANT
-  teams["TEAM_DIRE"] = TEAM_DIRE
-  teams["TEAM_NEUTRAL"] = TEAM_NEUTRAL
-  teams["TEAM_NONE"] = TEAM_NONE
-  info["teams"] = teams
+  local teamTypes = {}
+  teamTypes["TEAM_RADIANT"] = TEAM_RADIANT
+  teamTypes["TEAM_DIRE"] = TEAM_DIRE
+  teamTypes["TEAM_NEUTRAL"] = TEAM_NEUTRAL
+  teamTypes["TEAM_NONE"] = TEAM_NONE
+  info["teamTypes"] = teamTypes
   -- [5] RUNE TYPE ENUM
   local runeTypes = {}
   runeTypes["RUNE_INVALID"] = RUNE_INVALID
@@ -43,27 +44,27 @@ function gameinfo.get()
   runeTypes["RUNE_ARCANE"] = RUNE_ARCANE
   info["runeTypes"] = runeTypes
   -- [6] RUNE STATUS ENUM
-  local runeStatuses = {}
-  runeStatuses["RUNE_STATUS_UNKNOWN"] = RUNE_STATUS_UNKNOWN
-  runeStatuses["RUNE_STATUS_AVAILABLE"] = RUNE_STATUS_AVAILABLE
-  runeStatuses["RUNE_STATUS_MISSING"] = RUNE_STATUS_MISSING
-  info["runeStatus"] = runeStatuses
+  local runeStatusTypes = {}
+  runeStatusTypes["RUNE_STATUS_UNKNOWN"] = RUNE_STATUS_UNKNOWN
+  runeStatusTypes["RUNE_STATUS_AVAILABLE"] = RUNE_STATUS_AVAILABLE
+  runeStatusTypes["RUNE_STATUS_MISSING"] = RUNE_STATUS_MISSING
+  info["runeStatusTypes"] = runeStatusTypes
   -- [7] RUNE SPAWN ENUM
-  local runeSpawns = {}
-  runeSpawns["RUNE_POWERUP_1"] = RUNE_POWERUP_1
-  runeSpawns["RUNE_POWERUP_2"] = RUNE_POWERUP_2
-  runeSpawns["RUNE_BOUNTY_1"] = RUNE_BOUNTY_1
-  runeSpawns["RUNE_BOUNTY_2"] = RUNE_BOUNTY_2
-  runeSpawns["RUNE_BOUNTY_3"] = RUNE_BOUNTY_3
-  runeSpawns["RUNE_BOUNTY_4"] = RUNE_BOUNTY_4
-  info["runeSpawn"] = runeSpawns
+  local runeSpawnTypes = {}
+  runeSpawnTypes["RUNE_POWERUP_1"] = RUNE_POWERUP_1
+  runeSpawnTypes["RUNE_POWERUP_2"] = RUNE_POWERUP_2
+  runeSpawnTypes["RUNE_BOUNTY_1"] = RUNE_BOUNTY_1
+  runeSpawnTypes["RUNE_BOUNTY_2"] = RUNE_BOUNTY_2
+  runeSpawnTypes["RUNE_BOUNTY_3"] = RUNE_BOUNTY_3
+  runeSpawnTypes["RUNE_BOUNTY_4"] = RUNE_BOUNTY_4
+  info["runeSpawn"] = runeSpawnTypes
   -- [8] ITEM SLOT ENUM
-  local itemSlots = {}
-  itemSlots["ITEM_SLOT_TYPE_INVALID"] = ITEM_SLOT_TYPE_INVALID
-  itemSlots["ITEM_SLOT_TYPE_MAIN"] = ITEM_SLOT_TYPE_MAIN
-  itemSlots["ITEM_SLOT_TYPE_BACKPACK"] = ITEM_SLOT_TYPE_BACKPACK
-  itemSlots["ITEM_SLOT_TYPE_STASH"] = ITEM_SLOT_TYPE_STASH
-  info["itemSlot"] = itemSlots
+  local itemSlotTypes = {}
+  itemSlotTypes["ITEM_SLOT_TYPE_INVALID"] = ITEM_SLOT_TYPE_INVALID
+  itemSlotTypes["ITEM_SLOT_TYPE_MAIN"] = ITEM_SLOT_TYPE_MAIN
+  itemSlotTypes["ITEM_SLOT_TYPE_BACKPACK"] = ITEM_SLOT_TYPE_BACKPACK
+  itemSlotTypes["ITEM_SLOT_TYPE_STASH"] = ITEM_SLOT_TYPE_STASH
+  info["itemSlotTypes"] = itemSlotTypes
   -- [9] BOT ACTION TYPE ENUM
   local botActionTypes = {}
   botActionTypes["BOT_ACTION_TYPE_NONE"] = BOT_ACTION_TYPE_NONE
@@ -80,35 +81,35 @@ function gameinfo.get()
   botActionTypes["BOT_ACTION_TYPE_DELAY"] = BOT_ACTION_TYPE_DELAY
   info["botActionTypes"] = botActionTypes
   -- [10] COURIER ACTION ENUM
-  local courierActions = {}
-  courierActions["COURIER_ACTION_BURST"] = COURIER_ACTION_BURST
-  courierActions["COURIER_ACTION_ENEMY_SECRET_SHOP"] = COURIER_ACTION_ENEMY_SECRET_SHOP
-  courierActions["COURIER_ACTION_RETURN"] = COURIER_ACTION_RETURN
-  courierActions["COURIER_ACTION_SECRET_SHOP"] = COURIER_ACTION_SECRET_SHOP
-  courierActions["COURIER_ACTION_SIDE_SHOP"] = COURIER_ACTION_SIDE_SHOP
-  courierActions["COURIER_ACTION_SIDE_SHOP2"] = COURIER_ACTION_SIDE_SHOP2
-  courierActions["COURIER_ACTION_TAKE_STASH_ITEMS"] = COURIER_ACTION_TAKE_STASH_ITEMS
-  courierActions["COURIER_ACTION_TAKE_AND_TRANSFER_ITEMS"] = COURIER_ACTION_TAKE_AND_TRANSFER_ITEMS
-  courierActions["COURIER_ACTION_TRANSFER_ITEMS"] = COURIER_ACTION_TRANSFER_ITEMS
-  info["courierActions"] = courierActions
+  local courierActionTypes = {}
+  courierActionTypes["COURIER_ACTION_BURST"] = COURIER_ACTION_BURST
+  courierActionTypes["COURIER_ACTION_ENEMY_SECRET_SHOP"] = COURIER_ACTION_ENEMY_SECRET_SHOP
+  courierActionTypes["COURIER_ACTION_RETURN"] = COURIER_ACTION_RETURN
+  courierActionTypes["COURIER_ACTION_SECRET_SHOP"] = COURIER_ACTION_SECRET_SHOP
+  courierActionTypes["COURIER_ACTION_SIDE_SHOP"] = COURIER_ACTION_SIDE_SHOP
+  courierActionTypes["COURIER_ACTION_SIDE_SHOP2"] = COURIER_ACTION_SIDE_SHOP2
+  courierActionTypes["COURIER_ACTION_TAKE_STASH_ITEMS"] = COURIER_ACTION_TAKE_STASH_ITEMS
+  courierActionTypes["COURIER_ACTION_TAKE_AND_TRANSFER_ITEMS"] = COURIER_ACTION_TAKE_AND_TRANSFER_ITEMS
+  courierActionTypes["COURIER_ACTION_TRANSFER_ITEMS"] = COURIER_ACTION_TRANSFER_ITEMS
+  info["courierActionTypes"] = courierActionTypes
   -- [11] COURIER STATE ENUM
-  local courierStates = {}
-  courierStates["COURIER_STATE_IDLE"] = COURIER_STATE_IDLE
-  courierStates["COURIER_STATE_AT_BASE"] = COURIER_STATE_AT_BASE
-  courierStates["COURIER_STATE_MOVING"] = COURIER_STATE_MOVING
-  courierStates["COURIER_STATE_DELIVERING_ITEMS"] = COURIER_STATE_DELIVERING_ITEMS
-  courierStates["COURIER_STATE_RETURNING_TO_BASE"] = COURIER_STATE_RETURNING_TO_BASE
-  courierStates["COURIER_STATE_DEAD"] = COURIER_STATE_DEAD
-  info["courierStates"] = courierStates
+  local courierStateTypes = {}
+  courierStateTypes["COURIER_STATE_IDLE"] = COURIER_STATE_IDLE
+  courierStateTypes["COURIER_STATE_AT_BASE"] = COURIER_STATE_AT_BASE
+  courierStateTypes["COURIER_STATE_MOVING"] = COURIER_STATE_MOVING
+  courierStateTypes["COURIER_STATE_DELIVERING_ITEMS"] = COURIER_STATE_DELIVERING_ITEMS
+  courierStateTypes["COURIER_STATE_RETURNING_TO_BASE"] = COURIER_STATE_RETURNING_TO_BASE
+  courierStateTypes["COURIER_STATE_DEAD"] = COURIER_STATE_DEAD
+  info["courierStateTypes"] = courierStateTypes
 
   -- [12] SHOP ENUM
-  local shops = {}
-  shops["SHOP_HOME"] = SHOP_HOME
-  shops["SHOP_SIDE"] = SHOP_SIDE
-  shops["SHOP_SECRET"] = SHOP_SECRET
-  shops["SHOP_SIDE2"] = SHOP_SIDE2
-  shops["SHOP_SECRET2"] = SHOP_SECRET2
-  info["shops"] = shops
+  local shopTypes = {}
+  shopTypes["SHOP_HOME"] = SHOP_HOME
+  shopTypes["SHOP_SIDE"] = SHOP_SIDE
+  shopTypes["SHOP_SECRET"] = SHOP_SECRET
+  shopTypes["SHOP_SIDE2"] = SHOP_SIDE2
+  shopTypes["SHOP_SECRET2"] = SHOP_SECRET2
+  info["shopTypes"] = shopTypes
   -- [13] ABILITY TARGET TEAM ENUM
   local abilityTargetTeamTypes = {}
   abilityTargetTeamTypes["ABILITY_TARGET_TEAM_NONE"] = ABILITY_TARGET_TEAM_NONE
@@ -128,16 +129,16 @@ function gameinfo.get()
   abilityTargetTypes["ABILITY_TARGET_TYPE_ALL"] = ABILITY_TARGET_TYPE_ALL
   info["abilityTargetTypes"] = abilityTargetTypes
   -- [15] LANE ENUM
-  local lanes = {}
-  lanes["LANE_NONE"] = LANE_NONE
-  lanes["LANE_TOP"] = LANE_TOP
-  lanes["LANE_MID"] = LANE_MID
-  lanes["LANE_BOT"] = LANE_BOT
-  info["lanes"] = lanes
-  -- [16] Allied Team ID
-  info["teamID"] = GetTeam()
-  -- [17] Enemy Team ID
-  info["opposingTeamID"] = GetOpposingTeam()
+  local laneTypes = {}
+  laneTypes["LANE_NONE"] = LANE_NONE
+  laneTypes["LANE_TOP"] = LANE_TOP
+  laneTypes["LANE_MID"] = LANE_MID
+  laneTypes["LANE_BOT"] = LANE_BOT
+  info["laneTypes"] = laneTypes
+  -- -- [16] Allied Team ID
+  -- info["teamID"] = GetTeam()
+  -- -- [17] Enemy Team ID
+  -- info["opposingTeamID"] = GetOpposingTeam()
 
   local teamIds = {TEAM_RADIANT, TEAM_DIRE}
   -- [18] Players
@@ -153,7 +154,7 @@ function gameinfo.get()
       player["isPlayerBot"] = IsPlayerBot(pid)
       table.insert(team, player)
     end
-    teams[tid] = team
+    table.insert(teams, team)
   end
   info["teams"] = teams
   -- [19] World Bounds min X
@@ -167,7 +168,7 @@ function gameinfo.get()
   for k,tid in pairs(teamIds) do
     local teamShopLocations = {}
     for k,sid in pairs(shops) do
-      teamShopLocations[sid] = GetShopLocation(tid, sid)
+      teamShopLocations[sid] = ParseLocation(GetShopLocation(tid, sid))
     end
     shopLocations[tid] = teamShopLocations
   end
@@ -177,7 +178,7 @@ function gameinfo.get()
   local spawns = {RUNE_POWERUP_1, RUNE_POWERUP_2,
     RUNE_BOUNTY_1, RUNE_BOUNTY_2, RUNE_BOUNTY_3, RUNE_BOUNTY_4}
   for k,sid in pairs(spawns) do
-    runeSpawnLocations[sid] = GetRuneSpawnLocation(sid)
+    runeSpawnLocations[sid] = ParseLocation(GetRuneSpawnLocation(sid))
   end
   info["runeSpawnLocations"] = runeSpawnLocations
   -- [25] Ancient Locations
@@ -185,7 +186,7 @@ function gameinfo.get()
   for k,tid in pairs(teamIds) do
     local a = GetAncient(tid)
     local aloc = a:GetLocation()
-    ancientLocations[tid] = aloc
+    ancientLocations[tid] = ParseLocation(aloc)
   end
   info["ancientLocations"] = ancientLocations
   -- [26] Items
@@ -244,38 +245,38 @@ function gameinfo.get()
   botModeDesireTypes["BOT_MODE_DESIRE_ABSOLUTE"] = BOT_MODE_DESIRE_ABSOLUTE
   info["botModeDesireTypes"] = botModeDesireTypes
   -- [30] Towers
-  local towers = {}
-  towers["TOWER_TOP_1"] = TOWER_TOP_1
-  towers["TOWER_TOP_2"] = TOWER_TOP_2
-  towers["TOWER_TOP_3"] = TOWER_TOP_3
-  towers["TOWER_MID_1"] = TOWER_MID_1
-  towers["TOWER_MID_2"] = TOWER_MID_2
-  towers["TOWER_MID_3"] = TOWER_MID_3
-  towers["TOWER_BOT_1"] = TOWER_BOT_1
-  towers["TOWER_BOT_2"] = TOWER_BOT_2
-  towers["TOWER_BOT_3"] = TOWER_BOT_3
-  towers["TOWER_BASE_1"] = TOWER_BASE_1
-  towers["TOWER_BASE_2"] = TOWER_BASE_2
-  info["towers"] = towers
+  local towerTypes = {}
+  towerTypes["TOWER_TOP_1"] = TOWER_TOP_1
+  towerTypes["TOWER_TOP_2"] = TOWER_TOP_2
+  towerTypes["TOWER_TOP_3"] = TOWER_TOP_3
+  towerTypes["TOWER_MID_1"] = TOWER_MID_1
+  towerTypes["TOWER_MID_2"] = TOWER_MID_2
+  towerTypes["TOWER_MID_3"] = TOWER_MID_3
+  towerTypes["TOWER_BOT_1"] = TOWER_BOT_1
+  towerTypes["TOWER_BOT_2"] = TOWER_BOT_2
+  towerTypes["TOWER_BOT_3"] = TOWER_BOT_3
+  towerTypes["TOWER_BASE_1"] = TOWER_BASE_1
+  towerTypes["TOWER_BASE_2"] = TOWER_BASE_2
+  info["towerTypes"] = towerTypes
   -- [31] Barracks
-  local barracks = {}
-  barracks["BARRACKS_TOP_MELEE"] = BARRACKS_TOP_MELEE
-  barracks["BARRACKS_TOP_RANGED"] = BARRACKS_TOP_RANGED
-  barracks["BARRACKS_MID_MELEE"] = BARRACKS_MID_MELEE
-  barracks["BARRACKS_MID_RANGED"] = BARRACKS_MID_RANGED
-  barracks["BARRACKS_BOT_MELEE"] = BARRACKS_BOT_MELEE
-  barracks["BARRACKS_BOT_RANGED"] = BARRACKS_BOT_RANGED
-  info["barracks"] = barracks
+  local barrackTypes = {}
+  barrackTypes["BARRACKS_TOP_MELEE"] = BARRACKS_TOP_MELEE
+  barrackTypes["BARRACKS_TOP_RANGED"] = BARRACKS_TOP_RANGED
+  barrackTypes["BARRACKS_MID_MELEE"] = BARRACKS_MID_MELEE
+  barrackTypes["BARRACKS_MID_RANGED"] = BARRACKS_MID_RANGED
+  barrackTypes["BARRACKS_BOT_MELEE"] = BARRACKS_BOT_MELEE
+  barrackTypes["BARRACKS_BOT_RANGED"] = BARRACKS_BOT_RANGED
+  info["barrackTypes"] = barrackTypes
   -- [32] Shrines
-  local shrines = {}
-  shrines["SHRINE_BASE_1"] = SHRINE_BASE_1
-  shrines["SHRINE_BASE_2"] = SHRINE_BASE_2
-  shrines["SHRINE_BASE_3"] = SHRINE_BASE_3
-  shrines["SHRINE_BASE_4"] = SHRINE_BASE_4
-  shrines["SHRINE_BASE_5"] = SHRINE_BASE_5
-  shrines["SHRINE_JUNGLE_1"] = SHRINE_JUNGLE_1
-  shrines["SHRINE_JUNGLE_2"] = SHRINE_JUNGLE_2
-
+  local shrineTypes = {}
+  shrineTypes["SHRINE_BASE_1"] = SHRINE_BASE_1
+  shrineTypes["SHRINE_BASE_2"] = SHRINE_BASE_2
+  shrineTypes["SHRINE_BASE_3"] = SHRINE_BASE_3
+  shrineTypes["SHRINE_BASE_4"] = SHRINE_BASE_4
+  shrineTypes["SHRINE_BASE_5"] = SHRINE_BASE_5
+  shrineTypes["SHRINE_JUNGLE_1"] = SHRINE_JUNGLE_1
+  shrineTypes["SHRINE_JUNGLE_2"] = SHRINE_JUNGLE_2
+  info["shrineTypes"] = shrineTypes
   -- [33] Ability Target Flags
   local abilityTargetFlagTypes = {}
   abilityTargetFlagTypes["ABILITY_TARGET_FLAG_NONE"] = ABILITY_TARGET_FLAG_NONE
@@ -341,7 +342,7 @@ function gameinfo.get()
   animationActivityTypes["ACTIVITY_TAUNT"] = ACTIVITY_TAUNT
   info["activityTypes"] = animationActivityTypes
   -- return gameinfo
-  return Pack(info, "gameinfo")
+  return pack.pack(info, "gameinfo")
 end
 
 return gameinfo
