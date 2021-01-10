@@ -16,7 +16,7 @@ function version.get()
   local ver = {}
   ver["protocol"] = PROTOCOL_VERSION
   -- return version
-  return pack.pack(ver, "version");
+  return ver
 end
 
 return version

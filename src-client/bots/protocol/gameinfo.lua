@@ -161,16 +161,27 @@ function gameinfo.get()
   -- [20] World Bounds min Y
   -- [21] World Bounds max X
   -- [22] World Bounds max Y
-  info["worldBounds"] = GetWorldBounds()
+  local bounds = GetWorldBounds()
+  local wb = {}
+  wb["minX"] = bounds[1]
+  wb["minY"] = bounds[2]
+  wb["maxX"] = bounds[3]
+  wb["maxY"] = bounds[4]
+  info["worldBounds"] = wb
   -- [23] Shop Locations
   local shopLocations = {}
   local shops = {SHOP_HOME, SHOP_SIDE, SHOP_SECRET, SHOP_SIDE2, SHOP_SECRET2}
   for k,tid in pairs(teamIds) do
     local teamShopLocations = {}
+    teamShopLocations["teamID"] = tid
+    teamShopLocations["shopLocations"] = {}
     for k,sid in pairs(shops) do
-      teamShopLocations[sid] = ParseLocation(GetShopLocation(tid, sid))
+      local shop = {}
+      shop["shopID"] = sid
+      shop["location"] = ParseLocation(GetShopLocation(tid, sid))
+      table.insert(teamShopLocations["shopLocations"], shop)
     end
-    shopLocations[tid] = teamShopLocations
+    table.insert(shopLocations, teamShopLocations)
   end
   info["shopLocations"] = shopLocations
   -- [24] Rune Spawn Locations
@@ -178,15 +189,20 @@ function gameinfo.get()
   local spawns = {RUNE_POWERUP_1, RUNE_POWERUP_2,
     RUNE_BOUNTY_1, RUNE_BOUNTY_2, RUNE_BOUNTY_3, RUNE_BOUNTY_4}
   for k,sid in pairs(spawns) do
-    runeSpawnLocations[sid] = ParseLocation(GetRuneSpawnLocation(sid))
+    local data = {}
+    data["runeSpawnType"] = sid
+    data["location"] = ParseLocation(GetRuneSpawnLocation(sid))
+    table.insert(runeSpawnLocations, data)
   end
   info["runeSpawnLocations"] = runeSpawnLocations
   -- [25] Ancient Locations
   local ancientLocations = {}
   for k,tid in pairs(teamIds) do
     local a = GetAncient(tid)
-    local aloc = a:GetLocation()
-    ancientLocations[tid] = ParseLocation(aloc)
+    local data = {}
+    data["teamID"] = tid
+    data["location"] = ParseLocation(a:GetLocation())
+    table.insert(ancientLocations, data)
   end
   info["ancientLocations"] = ancientLocations
   -- [26] Items
@@ -342,7 +358,9 @@ function gameinfo.get()
   animationActivityTypes["ACTIVITY_TAUNT"] = ACTIVITY_TAUNT
   info["activityTypes"] = animationActivityTypes
   -- return gameinfo
-  return pack.pack(info, "gameinfo")
+  info["playerID"] = GetBot():GetPlayerID()
+  info["teamID"] = GetBot():GetTeam()
+  return info
 end
 
 return gameinfo

@@ -1,8 +1,9 @@
-local json = require "game/dkjson"
+-- local json = require "game/dkjson"
+local json = require(GetScriptDirectory() .. "/utils/json")
 local base64 = require(GetScriptDirectory() .. "/utils/base64")
 local MessagePack = require(GetScriptDirectory() .. "/utils/MessagePack")
 
-local USE_JSON = false
+local USE_JSON = true
 
 local pack = {}
 
@@ -24,13 +25,16 @@ end
 
 function pack.unpack(str)
     local type = string.sub(str, 0, 1)
-    local dataStr = string.sub(str, 2)
-    print("datastr: ", dataStr)
-    local data = {}
+    local messageTypeLen = tonumber(string.sub(str, 2, 4))
+    -- print('messageTypeLen', messageTypeLen)
+    local dataStr = string.sub(str, 5+messageTypeLen)
+    -- print("type: ", type)
+    -- print(string.format("datastr: '%s'", dataStr))
+    local data = nil
     if type == "J" then
-        data = json.decode(dataStr)["data"]
+        data = json.decode(dataStr)
     else
-        data = MessagePack.unpack(dataStr)["data"]
+        data = MessagePack.unpack(dataStr)
     end
     return data
 end
