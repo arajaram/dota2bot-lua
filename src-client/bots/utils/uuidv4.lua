@@ -20,7 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 local M = {}
 -----
--- math.randomseed( os.time() )
+local seed = RandomInt(1, 4294967295)
+print('UUID Seed', seed)
+math.randomseed(seed)
 math.random()
 -----
 local function num2bs(num)
