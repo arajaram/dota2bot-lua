@@ -3,7 +3,7 @@
 -- require's are shared for each RADIANT and DIRE team
 --
 
-local HOST_TIMESCALE = 4.0
+local HOST_TIMESCALE = 8.0
 
 local config = require(GetScriptDirectory() .. "/config")
 local version = require(GetScriptDirectory() .. "/protocol/version")
@@ -32,6 +32,8 @@ local unitHandles = nil
 local droppedItemsHandles = nil
 
 local isDesignatedToSendWorldInfo = false
+
+local Data = {}
 
 function Think()
   local team = GetTeam()
@@ -69,6 +71,7 @@ function Think()
     action.perform(bot, pendingActions, pendingUnitHandles, pendingDroppedItemsHandles)
     -- send OBSERVATION message
     local obs = observation.getUnitInfo(bot, true, true, false)
+    Data.unit = obs
     message = pack.pack(obs, "observation")
     local httpRequest = CreateHTTPRequest(config.server[team])
     httpRequest:SetHTTPRequestRawPostBody("application/octet-stream", message)
@@ -94,6 +97,7 @@ function Think()
   if gameTime > lastTeamObservationTimestamp then
     lastTeamObservationTimestamp = gameTime + teamObservationFrequency
     local obs = observation.teamInfo()
+    Data.teamInfo = obs
     message = pack.pack(obs, "team")
     local httpRequest = CreateHTTPRequest(config.server[team])
     httpRequest:SetHTTPRequestRawPostBody("application/octet-stream", message)
@@ -105,6 +109,9 @@ function Think()
     lastWorldUpdateTimestamp = gameTime + worldUpdateFrequency
     local worldInfo = nil
     worldInfo, unitHandles, droppedItemsHandles = observation.getWorldInfo()
+    Data.worldInfo = worldInfo
+    Data.unitHandles = unitHandles
+    Data.droppedItemsHandles = droppedItemsHandles
     message = pack.pack(worldInfo, "world")
     print(string.format("%s sending world update", GetBot():GetUnitName()))
     local httpRequest = CreateHTTPRequest(config.server[team])
@@ -114,3 +121,10 @@ function Think()
     end)
   end
 end
+
+local MyModule = {}
+MyModule.Think = Think
+MyModule.getData = function()
+  return Data
+end
+return MyModule

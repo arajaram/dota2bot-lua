@@ -66,6 +66,22 @@ function observation.getUnitInfo(u, abilities, items, trees)
   abilities = abilities == nil and true or abilities  -- defaults to true
   trees = trees == nil and false or trees          -- defaults to true
   unit["isBot"] = u:IsBot()
+  if unit["isBot"] then
+    unit["activeMode"] = u:GetActiveMode()
+    unit["activeModeDesire"] = u:GetActiveModeDesire()
+    unit["assignedLane"] = u:GetAssignedLane()
+    -- local lanes = {LANE_TOP, LANE_MID, LANE_BOT}
+    -- local lanesData = {}
+    -- for k,l in pairs(lanes) do
+    --   local laneData = {}
+    --   laneData["lane"] = l
+    --   laneData["pushDesire"] = u:GetPushLaneDesire(l)
+    --   laneData["defendDesire"] = u:GetDefendLaneDesire(l)
+    --   laneData["farmDesire"] = u:GetFarmLaneDesire(l)
+    --   table.insert(lanesData, laneData)
+    -- end
+    -- unit["lanes"] = lanesData
+  end
   unit["difficulty"] = u:GetDifficulty()
   unit["name"] = u:GetUnitName()
   unit["playerID"] = u:GetPlayerID()
