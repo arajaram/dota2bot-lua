@@ -6,11 +6,11 @@
 local action = require(GetScriptDirectory() .. "/protocol/action")
 local pack = require(GetScriptDirectory() .. "/utils/pack")
 
--- local botGeneric = require(GetScriptDirectory() .. "/bot_generic_base")
+local botGeneric = require(GetScriptDirectory() .. "/bot_base")
 
--- function Think()
---     botGeneric.Think()
--- end
+function Think()
+    botGeneric.Think()
+end
 
 function OnStart()
 end
@@ -26,7 +26,7 @@ BotsInit = require("game/botsinit")
 local MyModule = BotsInit.CreateGeneric();
 MyModule.OnStart = OnStart
 MyModule.OnEnd = OnEnd
--- MyModule.Think = Think
+MyModule.Think = Think
 MyModule.GetDesire = GetDesire
--- MyModule.getData = botGeneric.getData
+MyModule.getData = botGeneric.getData
 return MyModule
